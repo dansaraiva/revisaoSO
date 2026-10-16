@@ -151,16 +151,55 @@ h1 { font-family: var(--f-display); font-weight: 700; font-size: clamp(26px, 5.5
 .gq .expl { font-size: 14px; color: var(--muted); margin: 0; }
 .gq li > span:last-child { min-width: 0; overflow-wrap: anywhere; }
 @media (prefers-reduced-motion: no-preference) { .opt, .fr, .btn { transition: background-color .12s, border-color .12s; } }
+
+/* ---- gamificação ---- */
+.hud { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 14px; }
+.hud-row { display: flex; flex-wrap: wrap; gap: 10px 28px; align-items: flex-end; justify-content: space-between; }
+.stat { display: flex; flex-direction: column; gap: 2px; }
+.stat .k { font-family: var(--f-mono); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.stat .v { font-family: var(--f-display); font-weight: 700; font-size: 24px; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.stat .v small { font-family: var(--f-body); font-weight: 400; font-size: 14px; color: var(--muted); }
+.segs { display: grid; grid-template-columns: repeat(10, 1fr); gap: 5px; }
+.segs i { height: 10px; border-radius: 3px; background: var(--surface-2); border: 1px solid var(--line); }
+.segs i.on { background: var(--accent); border-color: var(--accent); }
+.map { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr)); gap: 12px; }
+.blk { text-align: left; display: flex; flex-direction: column; gap: 8px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 16px; cursor: pointer; min-width: 0; }
+.blk:hover { border-color: var(--accent); }
+.blk.done { background: var(--surface-2); }
+.blk .no { font-family: var(--f-mono); font-size: 12px; color: var(--muted); display: flex; justify-content: space-between; gap: 8px; }
+.blk .nm { font-family: var(--f-display); font-weight: 600; font-size: 19px; line-height: 1.25; margin: 0; }
+.blk .st { font-size: 14px; color: var(--muted); display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: center; }
+.stars { color: var(--t-mem); letter-spacing: 2px; font-size: 15px; }
+.pw-chip { font-family: var(--f-mono); font-size: 12px; border: 1px dashed var(--ok); color: var(--ok); border-radius: 4px; padding: 1px 6px; }
+.master { border: 2px solid var(--ok); background: var(--ok-bg); border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 8px; }
+.pwbox { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.pw { font-family: var(--f-mono); font-size: clamp(20px, 5vw, 28px); font-weight: 500; letter-spacing: .04em; background: var(--surface); border: 1px solid var(--ok); border-radius: 8px; padding: 8px 14px; user-select: all; overflow-wrap: anywhere; }
+.crumb { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; justify-content: space-between; }
+.crumb .btn { padding: 6px 12px; font-size: 14px; }
+.opt.sel { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); background: var(--surface-2); }
+.opt.sel .L { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.fr.ans { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.gq li.wrong { background: var(--bad-bg); }
+.gq li.wrong .l { color: var(--bad); font-weight: 600; }
+.gq .mark { font-family: var(--f-mono); font-size: 11px; text-transform: uppercase; letter-spacing: .05em; margin-left: 6px; }
+.lock { border: 1px dashed var(--line); border-radius: 12px; background: var(--surface); padding: 18px; display: flex; flex-direction: column; gap: 4px; color: var(--muted); }
+.lock b { color: var(--ink); font-family: var(--f-display); font-size: 18px; }
+details.dt { border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }
+details.dt > summary { cursor: pointer; padding: 14px 16px; font-family: var(--f-display); font-weight: 600; font-size: 18px; display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center; justify-content: space-between; }
+details.dt > .gl { padding: 0 16px 16px; }
+.danger { color: var(--bad); }
+
+#view { display: flex; flex-direction: column; gap: 14px; }
 </style>
 
 <div class="wrap" id="app">
   <header class="top">
     <div>
-      <p class="eyebrow">Revisão para avaliação · 50 questões</p>
+      <p class="eyebrow">Revisão para avaliação · 10 fases · 50 questões</p>
       <h1>Sistemas Operacionais: Linux, Memória e Virtualização</h1>
     </div>
     <div class="tabs" role="tablist" aria-label="Seções">
-      <button class="tab" role="tab" id="tab-quiz" aria-selected="true">Quiz</button>
+      <button class="tab" role="tab" id="tab-map" aria-selected="true">Fases</button>
       <button class="tab" role="tab" id="tab-key" aria-selected="false">Gabarito</button>
     </div>
   </header>
@@ -169,167 +208,202 @@ h1 { font-family: var(--f-display); font-weight: 700; font-size: clamp(26px, 5.5
 
 <script>
 var DATA = [{"id": 1, "t": "linux", "q": "Em sentido estrito, o que é o Linux?", "o": ["Um shell de comandos criado por Richard Stallman em 1983", "Um gerenciador de pacotes mantido pela comunidade Debian", "Um ambiente gráfico de código aberto, como GNOME ou KDE", "Uma linguagem de script usada para automatizar tarefas", "O kernel (núcleo) criado por Linus Torvalds em 1991"], "a": 4, "e": "Linux é o kernel, software livre sob a licença GPL. O sistema que o usuário instala (Ubuntu, Debian, Fedora, Arch) é uma distribuição.", "s": "Arquitetura e recursos do Linux · slide 4"}, {"id": 2, "t": "linux", "q": "Qual alternativa descreve corretamente uma distribuição Linux?", "o": ["Kernel Linux + ferramentas GNU + gerenciador de pacotes + aplicações", "Apenas o kernel Linux, sem nenhuma ferramenta adicional", "Apenas o shell e as bibliotecas compartilhadas do sistema", "Um conjunto de drivers de disco, rede e USB empacotados juntos", "Um ambiente gráfico acompanhado de navegador e editor de texto"], "a": 0, "e": "Distribuição = kernel + ferramentas GNU + gerenciador de pacotes + aplicações. Exemplos: Ubuntu, Debian, Fedora e Arch.", "s": "Arquitetura e recursos do Linux · slide 4"}, {"id": 3, "t": "linux", "q": "Na arquitetura em camadas do Linux, qual é a ordem correta, do hardware até o usuário?", "o": ["Hardware → Shell e bibliotecas → Kernel Linux → Aplicações", "Kernel Linux → Hardware → Aplicações → Shell e bibliotecas", "Hardware → Aplicações → Kernel Linux → Shell e bibliotecas", "Aplicações → Hardware → Shell e bibliotecas → Kernel Linux", "Hardware → Kernel Linux → Shell e bibliotecas → Aplicações"], "a": 4, "e": "O kernel fica logo acima do hardware (CPU, RAM, disco, rede). Acima dele vêm o shell e as bibliotecas (bash, glibc) e, no topo, as aplicações.", "s": "Arquitetura e recursos do Linux · slide 5"}, {"id": 4, "t": "linux", "q": "Como as aplicações pedem serviços ao kernel?", "o": ["Acessando diretamente os registradores da CPU e a memória de outros processos", "Por meio de chamadas de sistema (syscalls)", "Lendo e gravando arquivos de configuração em /etc a cada requisição", "Executando os comandos que o usuário digita no terminal", "Por meio de pacotes instalados pelo gerenciador de pacotes"], "a": 1, "e": "Aplicações não acessam o hardware diretamente: pedem serviços ao kernel por chamadas de sistema (syscalls).", "s": "Arquitetura e recursos do Linux · slide 5"}, {"id": 5, "t": "linux", "q": "Qual das tarefas abaixo NÃO é responsabilidade direta do kernel?", "o": ["Oferecer uma suíte de escritório com editor de textos e planilhas", "Criar, escalonar e encerrar processos", "Alocar a RAM e isolar a memória de cada processo", "Gerenciar sistemas de arquivos e permissões", "Controlar os drivers de disco, rede e USB"], "a": 0, "e": "O kernel cuida de processos, memória, arquivos e dispositivos. Suítes de escritório são aplicações, na camada mais alta.", "s": "Arquitetura e recursos do Linux · slide 6"}, {"id": 6, "t": "linux", "q": "Qual comando mostra a versão do kernel em uso?", "o": ["`lsmod | head`", "`cat /etc/os-release`", "`apt --version`", "`uname -r`", "`df -h`"], "a": 3, "e": "`uname -r` mostra a versão do kernel. `lsmod` lista módulos carregados e `cat /etc/os-release` informa a distribuição.", "s": "Arquitetura e recursos do Linux · slides 6 e 15"}, {"id": 7, "t": "linux", "q": "Em qual diretório do FHS ficam, por padrão, os arquivos de configuração do sistema?", "o": ["`/var`", "`/etc`", "`/home`", "`/tmp`", "`/dev`"], "a": 1, "e": "/etc guarda a configuração. /var guarda logs e dados que mudam com o tempo; /home, os arquivos dos usuários; /tmp, temporários; /dev, dispositivos.", "s": "Arquitetura e recursos do Linux · slides 7 e 25"}, {"id": 8, "t": "linux", "q": "Qual diretório expõe informações do kernel e dos processos em execução?", "o": ["`/dev`", "`/proc`", "`/usr/bin`", "`/var`", "`/home`"], "a": 1, "e": "/proc traz informações do kernel e dos processos. /dev contém arquivos que representam dispositivos.", "s": "Arquitetura e recursos do Linux · slide 7"}, {"id": 9, "t": "linux", "q": "Qual é a diferença entre terminal e shell?", "o": ["O terminal interpreta os comandos; o shell é apenas a janela onde eles são digitados", "Terminal é o nome do kernel; shell é o nome do sistema de arquivos", "São sinônimos exatos e não existe diferença entre eles", "O terminal é a janela onde se digita; o shell (como o bash) interpreta os comandos e pede ao kernel que os execute", "O terminal só existe em interface gráfica e o shell só em servidores sem interface"], "a": 3, "e": "O shell (bash, zsh, sh) lê o que você digita, pede ao kernel que execute e mostra o resultado. O terminal é a janela.", "s": "Arquitetura e recursos do Linux · slides 8 e 25"}, {"id": 10, "t": "linux", "q": "Qual comando lista arquivos e pastas, incluindo os ocultos (nomes que começam com ponto)?", "o": ["`ls -l`", "`ls`", "`pwd -a`", "`cat -la`", "`ls -la`"], "a": 4, "e": "A opção -a (all) inclui os arquivos ocultos; -l dá o formato longo, com permissões. `ls -l` sozinho não mostra os ocultos.", "s": "Arquitetura e recursos do Linux · slides 9 e 15"}, {"id": 11, "t": "linux", "q": "O que significa o modo 754 em `chmod 754 app.sh`?", "o": ["Dono: rwx · grupo: rwx · outros: r--", "Dono: r-x · grupo: rwx · outros: r--", "Dono: rwx · grupo: r-x · outros: r--", "Dono: rw- · grupo: r-x · outros: r-x", "Dono: rwx · grupo: r-- · outros: r-x"], "a": 2, "e": "r = 4, w = 2, x = 1. Dono 7 (4+2+1 = rwx), grupo 5 (4+1 = r-x), outros 4 (r--).", "s": "Arquitetura e recursos do Linux · slides 10 e 25"}, {"id": 12, "t": "linux", "q": "Um script aparece como `-rw-r--r--` no `ls -l` e `./ola.sh` retorna 'Permission denied'. Qual comando libera a execução para o dono?", "o": ["`chown u+x ola.sh`", "`sudo apt install ola.sh`", "`chmod 644 ola.sh`", "`chmod u+x ola.sh`", "`cp ola.sh /usr/bin`"], "a": 3, "e": "Sem o bit x o arquivo não executa. `chmod u+x` liga a execução para o dono (u = user).", "s": "Arquitetura e recursos do Linux · slide 16"}, {"id": 13, "t": "linux", "q": "Para que serve `sudo apt update`?", "o": ["Atualizar a lista (índice) de pacotes disponíveis nos repositórios", "Instalar a versão mais recente de todos os programas do sistema", "Remover os pacotes que não são mais utilizados", "Atualizar o kernel para a última versão disponível", "Reiniciar os serviços instalados no servidor"], "a": 0, "e": "O `apt update` só atualiza a lista de pacotes. Rodá-lo antes de instalar evita erros como 'Unable to locate package'.", "s": "Arquitetura e recursos do Linux · slides 17, 20 e 25"}, {"id": 14, "t": "linux", "q": "Qual é o gerenciador de pacotes das distribuições da família Red Hat (Fedora, RHEL, Rocky)?", "o": ["`apt`", "`pacman`", "`zypper`", "`dnf`", "`pip`"], "a": 3, "e": "Debian/Ubuntu/Mint usam apt; Red Hat/Fedora/RHEL/Rocky usam dnf; Arch/Manjaro usam pacman; openSUSE usa zypper.", "s": "Arquitetura e recursos do Linux · slide 11"}, {"id": 15, "t": "linux", "q": "Qual afirmação sobre instalar programas com sudo e sem root está correta?", "o": ["Com sudo o programa vai para /usr ou /opt e altera o sistema inteiro; sem root, vai para ~/.local ou ~/bin e afeta só a sua conta", "Com sudo a instalação afeta apenas a conta do usuário atual; sem root, o sistema inteiro", "Sem root é impossível instalar qualquer software no Linux", "O sudo não exige senha nem que o usuário pertença a um grupo específico", "Instalar sem root exige sempre compilar o kernel novamente"], "a": 0, "e": "Use sudo só quando necessário e confira a origem do pacote. Ferramentas como venv e nvm instalam no espaço do usuário.", "s": "Arquitetura e recursos do Linux · slide 13"}, {"id": 16, "t": "linux", "q": "Um site em /var/www/site retorna 403 Forbidden. O `ls -l` mostra modo 600 e dono root. Qual é a solução indicada?", "o": ["`sudo apt update` seguido de reinstalar o Nginx", "`chown -R www-data:www-data /var/www/site`, depois `chmod` 755 nas pastas e 644 nos arquivos", "`chmod 000` em todos os arquivos do site", "Reiniciar a VM e executar o servidor web como root", "Mover o site para /tmp e apagar o /var/www"], "a": 1, "e": "O usuário do servidor web (www-data) não conseguia ler arquivos 600 de root. Dono e permissões decidem quem lê, escreve e executa.", "s": "Arquitetura e recursos do Linux · slide 19"}, {"id": 17, "t": "linux", "q": "Qual é a vantagem de criar um ambiente virtual (`python3 -m venv .venv`) antes de instalar bibliotecas como `requests`?", "o": ["Instala a biblioteca para todos os usuários do sistema", "Atualiza o kernel e o Python do sistema", "Substitui o git no controle de versões do projeto", "Compila a biblioteca em /usr/lib com privilégios de root", "Isola as bibliotecas do projeto e dispensa o uso de sudo"], "a": 4, "e": "O venv mantém as dependências restritas ao projeto e permite `pip install` sem sudo.", "s": "Arquitetura e recursos do Linux · slide 18"}, {"id": 18, "t": "memoria", "q": "Qual é a principal consequência de os programas verem diretamente a memória física, sem abstração (como no MS-DOS)?", "o": ["Os programas só podem ser executados se forem menores que 4 KB", "A memória é dividida automaticamente em páginas de tamanho fixo", "Não é possível manter dois programas na memória com segurança, pois um pode sobrescrever os dados do outro ou do SO", "Todo acesso passa por uma tabela de páginas, o que o torna lento", "O sistema operacional deixa de precisar de qualquer parte da RAM"], "a": 2, "e": "Sem tradução de endereços e sem proteção, `MOV REGISTER1,1000` acessa a posição física 1000. Um erro em um programa de usuário podia corromper o próprio SO.", "s": "Gerenciamento de Memória · slide 6"}, {"id": 19, "t": "memoria", "q": "Na hierarquia de memória, qual é a ordem do nível mais rápido, pequeno e caro para o mais lento, grande e barato?", "o": ["Disco → RAM → cache", "Cache → memória principal (RAM) → disco", "RAM → cache → disco", "Cache → disco → RAM", "RAM → disco → cache"], "a": 1, "e": "Cache é pequena, cara e rápida; a RAM vem em seguida; o disco é grande, barato e lento. O gerenciador de memória cuida dessa hierarquia.", "s": "Gerenciamento de Memória · slide 3"}, {"id": 20, "t": "memoria", "q": "Quais problemas do modelo sem abstração o espaço de endereçamento resolve?", "o": ["A falta de capacidade do disco rígido", "A lentidão da CPU em relação à cache", "A fragmentação interna das páginas de tamanho fixo", "Proteção entre processos e realocação (o programa funciona independentemente de onde foi carregado)", "A impossibilidade de usar ROM para guardar a BIOS"], "a": 3, "e": "Espaço de endereçamento é o conjunto de endereços que um processo pode usar. Dá a cada processo a ilusão de memória privada.", "s": "Gerenciamento de Memória · slide 8"}, {"id": 21, "t": "memoria", "q": "Dois processos usam ao mesmo tempo o endereço virtual 1000. O que acontece?", "o": ["Os dois acessam a mesma posição física e os dados são compartilhados automaticamente", "O segundo processo é bloqueado até o primeiro terminar", "O hardware traduz cada um para uma posição física diferente, sem conflito", "Ocorre uma falta de página obrigatória nos dois processos", "O sistema operacional encerra um deles por conflito de endereço"], "a": 2, "e": "Esse é o ponto do espaço de endereçamento: cada processo tem o seu, e a tradução evita o conflito.", "s": "Gerenciamento de Memória · slide 8"}, {"id": 22, "t": "memoria", "q": "Qual é a diferença essencial entre swapping e memória virtual paginada?", "o": ["No swapping só algumas páginas do processo ficam na RAM; na memória virtual o processo fica inteiro", "O swapping usa tabela de páginas e a memória virtual usa mapa de bits", "No swapping o processo precisa estar inteiro na memória (ou inteiro fora dela); na memória virtual só as páginas em uso precisam estar na RAM", "A memória virtual exige que o programa caiba inteiro na RAM; o swapping não", "Não há diferença: são dois nomes para a mesma técnica"], "a": 2, "e": "Por manter só o necessário na RAM, a memória virtual é mais flexível e permite rodar programas maiores que a memória física.", "s": "Gerenciamento de Memória · slides 9 e 12"}, {"id": 23, "t": "memoria", "q": "Em um mapa de bits para gerenciar memória livre, o que cada bit indica?", "o": ["Se a página foi referenciada (R) ou modificada (M)", "O número do quadro físico associado à página", "Se a página virtual está presente ou ausente na RAM", "O dono do segmento (0 = sistema, 1 = usuário)", "Se uma unidade de alocação está livre (0) ou ocupada (1)"], "a": 4, "e": "A memória é dividida em unidades de alocação. O mapa é simples, mas buscar um espaço livre grande pode ser lento.", "s": "Gerenciamento de Memória · slides 9 e 10"}, {"id": 24, "t": "memoria", "q": "First Fit, Best Fit e Next Fit servem para quê?", "o": ["Escolher qual página remover quando a RAM está cheia", "Traduzir endereços virtuais em endereços físicos na MMU", "Decidir onde alocar um processo na lista encadeada de segmentos livres e ocupados", "Escalonar processos na CPU", "Definir o tamanho das páginas do sistema"], "a": 2, "e": "Listas encadeadas guardam segmentos livres e ocupados (endereço inicial, tamanho, processo). Os algoritmos *fit* escolhem o espaço.", "s": "Gerenciamento de Memória · slide 10"}, {"id": 25, "t": "memoria", "q": "O que é a MMU (Unidade de Gerenciamento de Memória)?", "o": ["O software do SO que escolhe qual página remover", "Uma pequena cache das traduções mais recentes", "A área do disco reservada para as páginas removidas da RAM", "O registrador que guarda o endereço base de um processo", "O hardware que traduz endereços virtuais em físicos usando a tabela de páginas"], "a": 4, "e": "O mapeamento é feito por hardware. A cache de traduções é o TLB; a área em disco é o armazenamento de apoio.", "s": "Gerenciamento de Memória · slide 12"}, {"id": 26, "t": "memoria", "q": "O que acontece quando ocorre uma falta de página e há quadro livre?", "o": ["O SO encerra o processo, pois acessar página ausente é sempre inválido", "A MMU busca a página no disco sozinha, sem participação do SO", "O SO remove todas as páginas do processo da RAM e reinicia o programa", "O hardware interrompe o processo, o SO verifica se o acesso é válido, busca a página no disco, atualiza a tabela e retoma a execução", "O TLB carrega a página do disco e a tabela de páginas não é alterada"], "a": 3, "e": "Falta de página ocorre quando o bit presente/ausente é 0. Sem quadro livre, o SO aplicaria um algoritmo de substituição.", "s": "Gerenciamento de Memória · slides 13 e 20"}, {"id": 27, "t": "memoria", "q": "Em um sistema paginado típico, qual afirmação sobre páginas e quadros está correta?", "o": ["Páginas pertencem à memória física e quadros ao espaço virtual, com tamanhos diferentes", "Páginas têm tamanho variável conforme o significado lógico do conteúdo", "Quadros existem apenas no disco, no armazenamento de apoio", "O espaço virtual é dividido em páginas (tipicamente 4 KB) e a memória física em quadros de página do mesmo tamanho", "Cada processo tem quadros de tamanhos diferentes para código e dados"], "a": 3, "e": "A tabela de páginas mapeia cada página virtual a um quadro físico. Tamanho variável com significado lógico é característica da segmentação.", "s": "Gerenciamento de Memória · slide 13"}, {"id": 28, "t": "memoria", "q": "Qual é a função do TLB (Translation Lookaside Buffer)?", "o": ["Armazenar páginas inteiras recém-usadas para evitar o acesso ao disco", "Guardar em cache as traduções de endereço mais usadas, evitando consultar a tabela de páginas a cada acesso", "Guardar o conjunto de trabalho de cada processo", "Registrar quais segmentos de memória estão livres e ocupados", "Substituir a tabela de páginas, que deixa de existir"], "a": 1, "e": "Sem TLB, cada acesso exigiria ao menos um acesso extra à tabela de páginas, dobrando o tempo efetivo de acesso à memória.", "s": "Gerenciamento de Memória · slide 14"}, {"id": 29, "t": "memoria", "q": "Por que se usam tabelas de páginas multiníveis? (32 bits e páginas de 4 KB resultam em mais de 1 milhão de entradas)", "o": ["Para não manter inteira na memória uma tabela gigantesca de nível único", "Para aumentar o tamanho das páginas e reduzir a fragmentação interna", "Para eliminar a ocorrência de faltas de página", "Para que o TLB passe a armazenar o disco inteiro", "Para implementar o algoritmo ótimo de substituição"], "a": 0, "e": "Tabelas multiníveis (páginas de tabelas de páginas) resolvem o problema de espaços de endereçamento muito grandes.", "s": "Gerenciamento de Memória · slide 14"}, {"id": 30, "t": "memoria", "q": "Por que o algoritmo ótimo de substituição de páginas não pode ser implementado na prática?", "o": ["Exige bits R e M em cada quadro, e esse hardware não existe", "Gera sempre mais faltas de página que o FIFO", "Exige saber quais páginas serão usadas no futuro; serve apenas como referência de comparação", "Só funciona com páginas maiores que 4 KB", "Depende de um TLB com milhares de entradas"], "a": 2, "e": "O ótimo remove a página que não será usada pelo maior tempo no futuro. Como não se conhece o futuro, é usado só para comparar os outros algoritmos.", "s": "Gerenciamento de Memória · slide 17"}, {"id": 31, "t": "memoria", "q": "Qual é a principal falha do FIFO, corrigida pelo algoritmo da segunda chance?", "o": ["O FIFO exige conhecer o futuro; a segunda chance usa o passado", "O FIFO remove a página mais antiga mesmo que ainda esteja em uso; a segunda chance poupa páginas com bit R = 1", "O FIFO usa contadores por página; a segunda chance usa uma lista circular", "O FIFO remove sempre a página mais recente; a segunda chance, a mais antiga", "O FIFO não funciona quando a RAM está cheia"], "a": 1, "e": "A segunda chance move para o fim da fila as páginas com R = 1. O relógio é a versão eficiente, com lista circular.", "s": "Gerenciamento de Memória · slide 17"}, {"id": 32, "t": "memoria", "q": "Como funciona o NRU (Não Usada Recentemente)?", "o": ["Usa os bits R e M para classificar as páginas em 4 classes e remove uma da classe mais baixa", "Remove a página que ficará mais tempo sem uso no futuro", "Mantém uma lista circular e um ponteiro que avança como um relógio", "Mantém um contador por página atualizado a cada interrupção de relógio", "Remove sempre a página há mais tempo na memória"], "a": 0, "e": "É simples e barato, embora não seja o mais preciso. A alternativa do ponteiro descreve o relógio; a do contador, o envelhecimento.", "s": "Gerenciamento de Memória · slides 16 e 17"}, {"id": 33, "t": "memoria", "q": "Qual algoritmo aproxima o LRU usando um contador por página atualizado a cada interrupção de relógio?", "o": ["Relógio", "NRU", "Segunda chance", "Ótimo", "Envelhecimento"], "a": 4, "e": "O LRU remove a página não usada há mais tempo, mas é caro de implementar exatamente. O envelhecimento é uma boa aproximação prática.", "s": "Gerenciamento de Memória · slide 17"}, {"id": 34, "t": "memoria", "q": "O que é o conjunto de trabalho (working set) e como ele se relaciona ao thrashing?", "o": ["É o conjunto de processos prontos para executar; o thrashing ocorre quando a fila fica vazia", "É o conjunto de páginas que o processo usa ativamente; se não cabe na RAM, ocorrem faltas de página em excesso (thrashing)", "É o conjunto de páginas no armazenamento de apoio; o thrashing ocorre quando o disco enche", "É o conjunto de segmentos compartilhados; o thrashing é a fragmentação externa", "É o conjunto de quadros travados para E/S; o thrashing é o travamento dessas páginas"], "a": 1, "e": "Manter o conjunto de trabalho na RAM evita o thrashing, que deixa o computador lento quando muitos programas estão abertos.", "s": "Gerenciamento de Memória · slides 19 e 25"}, {"id": 35, "t": "memoria", "q": "Qual é o trade-off ao escolher o tamanho de página?", "o": ["Páginas pequenas aumentam a fragmentação interna e reduzem a tabela de páginas", "O tamanho não influencia nem o desperdício nem a tabela de páginas", "Páginas pequenas reduzem a fragmentação interna, mas aumentam a tabela de páginas; páginas grandes fazem o oposto", "Páginas grandes eliminam qualquer falta de página", "Páginas pequenas impedem o uso do TLB"], "a": 2, "e": "Trata-se de uma decisão de projeto de sistemas paginados, ao lado do conjunto de trabalho e das políticas de alocação.", "s": "Gerenciamento de Memória · slide 19"}, {"id": 36, "t": "memoria", "q": "Qual a diferença entre alocação local e global de páginas?", "o": ["Local: o processo só substitui as próprias páginas; global: qualquer página do sistema pode ser substituída, em geral com melhor desempenho", "Local: qualquer página do sistema pode ser substituída; global: o processo só substitui as próprias páginas", "Local usa o disco e global usa a RAM", "Local vale só para código e global só para dados", "Local exige o FIFO e global exige o LRU"], "a": 0, "e": "A política de alocação é uma das decisões de projeto de um sistema paginado.", "s": "Gerenciamento de Memória · slide 19"}, {"id": 37, "t": "memoria", "q": "Qual comparação entre paginação e segmentação, quanto à fragmentação, está correta?", "o": ["Paginação gera fragmentação externa; segmentação gera interna", "As duas geram apenas fragmentação interna", "Paginação gera fragmentação interna (última página); segmentação gera externa (buracos entre segmentos)", "Nenhuma das duas gera fragmentação", "As duas geram apenas fragmentação externa"], "a": 2, "e": "Páginas têm tamanho fixo, sem significado lógico. Segmentos têm tamanho variável e significado lógico (código, pilha, dados).", "s": "Gerenciamento de Memória · slides 22 e 23"}, {"id": 38, "t": "memoria", "q": "Acessos às páginas 1, 2, 3, 4, 1, 2, 5, com 3 quadros inicialmente vazios. Quantas faltas de página geram FIFO e Ótimo, respectivamente?", "o": ["FIFO: 5 faltas · Ótimo: 7 faltas", "FIFO: 6 faltas · Ótimo: 6 faltas", "FIFO: 7 faltas · Ótimo: 7 faltas", "FIFO: 7 faltas · Ótimo: 5 faltas", "FIFO: 5 faltas · Ótimo: 4 faltas"], "a": 3, "e": "FIFO: 1, 2, 3, 4, 1, 2 e 5 faltam todas (7). Ótimo: faltam 1, 2, 3 e 4 (4 remove a 3, que não volta); 1 e 2 são acertos; 5 falta (5).", "s": "Gerenciamento de Memória · slide 26 (atividade 3)"}, {"id": 39, "t": "virt", "q": "O que é virtualização e qual é o papel do hipervisor?", "o": ["Compilar programas para outra arquitetura; o hipervisor é o compilador", "Copiar dados entre servidores; o hipervisor é o protocolo de cópia", "Criar versões virtuais de recursos físicos; o hipervisor divide o mesmo hardware entre várias máquinas virtuais isoladas", "Rodar vários processos no mesmo SO compartilhando o kernel; o hipervisor é o escalonador", "Eliminar o hardware físico; o hipervisor substitui a CPU e a memória"], "a": 2, "e": "Cada VM 'acredita' ter a própria CPU, memória e disco. Isso permite consolidar vários servidores subutilizados em poucos servidores robustos.", "s": "Virtualização e Servidores Linux · página 5"}, {"id": 40, "t": "virt", "q": "Qual descrição corresponde a um hipervisor tipo 1 (bare-metal)?", "o": ["Instalado direto no hardware, sem SO hospedeiro, com melhor desempenho e uso em servidores de produção", "Roda como um programa comum sobre um SO já instalado, prático para testes no notebook", "Empacota aplicações compartilhando o kernel do hospedeiro", "Só funciona na nuvem pública, nunca em servidores próprios", "Não isola as máquinas virtuais entre si"], "a": 0, "e": "O tipo 2 (hosted) roda sobre um sistema já instalado. Contêineres são outra abordagem, que compartilha o kernel.", "s": "Virtualização e Servidores Linux · página 6"}, {"id": 41, "t": "virt", "q": "Qual opção traz apenas exemplos de hipervisores tipo 2 (hosted)?", "o": ["VMware ESXi e Proxmox", "KVM e Hyper-V", "VirtualBox e VMware Workstation", "Docker e Podman", "VMware ESXi e VirtualBox"], "a": 2, "e": "Tipo 1: VMware ESXi, KVM, Hyper-V, Proxmox. Tipo 2: VirtualBox, VMware Workstation. Docker e Podman são contêineres.", "s": "Virtualização e Servidores Linux · página 6"}, {"id": 42, "t": "virt", "q": "Qual a diferença entre máquina virtual e contêiner quanto ao que é isolado?", "o": ["A VM isola processos compartilhando o kernel; o contêiner isola o hardware completo", "Ambos têm um SO completo próprio e dependem de hipervisor", "O contêiner exige um SO completo por instância; a VM não", "A VM isola o hardware completo via hipervisor, com SO próprio; o contêiner isola processos compartilhando o kernel do hospedeiro", "Não há diferença de isolamento, apenas de nome"], "a": 3, "e": "O contêiner não tem SO próprio: usa o do hospedeiro. Por isso é mais leve que a VM.", "s": "Virtualização e Servidores Linux · página 7"}, {"id": 43, "t": "virt", "q": "Sobre tempo de início e uso típico de VMs e contêineres, qual afirmação está correta?", "o": ["VMs iniciam em segundos e servem para empacotar aplicações; contêineres levam minutos", "Contêineres iniciam em segundos e servem para empacotar e distribuir aplicações; VMs levam minutos e isolam SOs diferentes", "Ambos iniciam em milissegundos e servem para o mesmo fim", "VMs servem para distribuir aplicações e contêineres para rodar Windows e Linux juntos", "Contêineres demoram mais por precisarem de um SO completo"], "a": 1, "e": "Exemplos de contêiner: Docker e Podman. Exemplos de VM: VMware, KVM, VirtualBox.", "s": "Virtualização e Servidores Linux · página 7"}, {"id": 44, "t": "virt", "q": "No vocabulário da virtualização, o que são host e guest?", "o": ["Host é o SO convidado dentro da VM; guest é o servidor físico", "Host é o hipervisor; guest é o snapshot", "Host é a VM de produção; guest é a VM de testes", "Host é o usuário root; guest é um usuário comum", "Host é o servidor físico que hospeda as VMs; guest é o SO convidado dentro da VM"], "a": 4, "e": "Hipervisor: software que cria e gerencia as VMs. Snapshot: foto do estado de uma VM, para reverter depois.", "s": "Virtualização e Servidores Linux · página 8"}, {"id": 45, "t": "virt", "q": "Como se chama o recurso que move uma VM em execução para outro host, sem pará-la?", "o": ["Snapshot", "Elasticidade", "Swapping", "Consolidação de servidores", "Live migration"], "a": 4, "e": "Elasticidade é ajustar recursos virtuais conforme a demanda, na nuvem.", "s": "Virtualização e Servidores Linux · página 8"}, {"id": 46, "t": "virt", "q": "Qual das alternativas NÃO é um motivo apresentado para usar Linux em servidores?", "o": ["Estabilidade: servidores ficam meses no ar sem reiniciar", "Custo: software livre e gratuito, sem licenciamento por servidor", "Automação: terminal e scripts facilitam tarefas repetitivas", "Exige licenciamento pago por servidor, o que garante suporte", "Padrão de mercado: nuvem, contêineres e a maioria dos sites rodam sobre Linux"], "a": 3, "e": "Um dos pontos fortes do Linux é justamente não haver licenciamento por servidor.", "s": "Virtualização e Servidores Linux · página 9"}, {"id": 47, "t": "virt", "q": "Qual comando copia o arquivo a.txt para o diretório /tmp de um servidor remoto?", "o": ["`ssh a.txt usuario@servidor:/tmp`", "`scp a.txt usuario@servidor:/tmp`", "`cp a.txt usuario@servidor /tmp`", "`curl a.txt usuario@servidor:/tmp`", "`ping a.txt usuario@servidor:/tmp`"], "a": 1, "e": "`ssh` acessa o servidor remoto; `scp` copia arquivos entre máquinas; `ping` testa conectividade; `curl` faz requisições HTTP.", "s": "Virtualização e Servidores Linux · página 15"}, {"id": 48, "t": "virt", "q": "Qual par de comandos mostra, respectivamente, o uso de memória RAM e o espaço em disco?", "o": ["`free -h` e `df -h`", "`df -h` e `free -h`", "`top` e `ps aux`", "`ip a` e `ping`", "`systemctl status` e `kill`"], "a": 0, "e": "`free -h` mostra a RAM; `df -h` mostra o disco; `top`/`htop` monitoram CPU e memória em tempo real; `ps aux` lista processos.", "s": "Virtualização e Servidores Linux · página 14"}, {"id": 49, "t": "virt", "q": "O que faz o comando `chmod 755 app.sh`?", "o": ["Dá rwx ao dono, ao grupo e aos outros", "Dá r-x ao dono e rwx aos demais", "Dá rw- ao dono e r-- aos demais", "Muda o dono do arquivo para o usuário 755", "Dá rwx ao dono e r-x ao grupo e aos outros"], "a": 4, "e": "r = 4, w = 2, x = 1. 7 = rwx e 5 = r-x. Para mudar o dono usa-se `chown`.", "s": "Virtualização e Servidores Linux · página 13"}, {"id": 50, "t": "virt", "q": "No exemplo prático (de uma VM Ubuntu vazia a um servidor web), qual é a sequência correta?", "o": ["`ssh` → `sudo apt update && sudo apt install nginx` → `chown`/`chmod` no site → `systemctl status nginx` e `curl`", "`systemctl status nginx` → `ssh` → `apt install nginx` → `chmod` → `curl`", "`apt install nginx` → `ssh` → `curl` → `chown` → `systemctl status`", "`chmod 755` → `ssh` → `curl` → `apt update` → `chown`", "`curl` → `apt install` → `chmod` → `ssh` → `systemctl status`"], "a": 0, "e": "Conectar via SSH, atualizar e instalar o Nginx, ajustar permissões do site e, por fim, verificar o serviço e testar a resposta.", "s": "Virtualização e Servidores Linux · páginas 16 e 17"}];
+var BLOCKS = [{"id": 1, "name": "Núcleo e camadas", "t": "linux", "ids": [1, 2, 3, 4, 5, 6], "pw": "TORVALDS-1991"}, {"id": 2, "name": "Terminal e permissões", "t": "linux", "ids": [7, 8, 9, 10, 11, 12], "pw": "CHMOD-754"}, {"id": 3, "name": "Pacotes, sudo e ambientes", "t": "linux", "ids": [13, 14, 15, 16, 17], "pw": "APT-UPDATE"}, {"id": 4, "name": "Sem abstração e endereços", "t": "memoria", "ids": [18, 19, 20, 21, 22, 23], "pw": "ENDERECO-1000"}, {"id": 5, "name": "Paginação e MMU", "t": "memoria", "ids": [24, 25, 26, 27, 28], "pw": "TLB-HIT-4KB"}, {"id": 6, "name": "Substituição de páginas", "t": "memoria", "ids": [29, 30, 31, 32, 33], "pw": "CLOCK-LRU"}, {"id": 7, "name": "Projeto, thrashing e segmentação", "t": "memoria", "ids": [34, 35, 36, 37, 38], "pw": "THRASHING-0"}, {"id": 8, "name": "Hipervisores e contêineres", "t": "virt", "ids": [39, 40, 41, 42], "pw": "HYPERVISOR-1"}, {"id": 9, "name": "VMs e por que Linux", "t": "virt", "ids": [43, 44, 45, 46], "pw": "LIVE-MIGRATION"}, {"id": 10, "name": "Comandos de servidor", "t": "virt", "ids": [47, 48, 49, 50], "pw": "SSH-NGINX-OK"}];
+var MASTER = "ROOT-ACCESS-GRANTED";
 var TOPICS = {
-  linux:   { name: "Arquitetura e recursos do Linux" },
-  memoria: { name: "Gerenciamento de Memória" },
-  virt:    { name: "Virtualização e Servidores Linux" }
+  linux:   "Arquitetura e recursos do Linux",
+  memoria: "Gerenciamento de Memória",
+  virt:    "Virtualização e Servidores Linux"
 };
 var LET = ["A", "B", "C", "D", "E"];
-var state = { tab: "quiz", filter: "all", list: DATA.slice(), idx: 0, ans: {}, result: false };
+var RANKS = [[0, "Estagiário"], [150, "Usuário"], [300, "Sysadmin"], [500, "Engenheiro de kernel"], [650, "Root"]];
+var KEY = "so-quiz-fases-v1";
+var byId = {}; DATA.forEach(function (q) { byId[q.id] = q; });
 var view = document.getElementById("view");
+
+function loadP() { try { var r = localStorage.getItem(KEY); if (r) { var o = JSON.parse(r); if (o && o.done) return o; } } catch (e) {} return { done: {} }; }
+function saveP() { try { localStorage.setItem(KEY, JSON.stringify(P)); } catch (e) {} }
+var P = loadP();
+var S = { tab: "map", screen: "map", b: 0, idx: 0, cur: {}, practice: false, confirmReset: false, copied: false, last: null };
 
 function esc(s) { return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
 function fmt(s) { return esc(s).replace(/`([^`]+)`/g, "<code>$1</code>").replace(/\*([^*]+)\*/g, "<em>$1</em>"); }
 function two(n) { return n < 10 ? "0" + n : "" + n; }
-function countFor(k) { return k === "all" ? DATA.length : DATA.filter(function (q) { return q.t === k; }).length; }
-
-function setFilter(k) {
-  state.filter = k;
-  state.list = k === "all" ? DATA.slice() : DATA.filter(function (q) { return q.t === k; });
-  state.idx = 0; state.result = false;
-  var first = state.list.findIndex(function (q) { return state.ans[q.id] === undefined; });
-  if (first >= 0) state.idx = first;
-  render();
+function qs(b) { return b.ids.map(function (id) { return byId[id]; }); }
+function totalXP() { var x = 0; BLOCKS.forEach(function (b) { if (P.done[b.id]) x += P.done[b.id].xp; }); return x; }
+function doneCount() { return BLOCKS.filter(function (b) { return P.done[b.id]; }).length; }
+function rankOf(xp) { var r = RANKS[0][1]; RANKS.forEach(function (x) { if (xp >= x[0]) r = x[1]; }); return r; }
+function starsHTML(score, total) {
+  var p = score / total, n = p >= 0.9 ? 3 : p >= 0.7 ? 2 : 1;
+  return '<span class="stars" role="img" aria-label="' + n + ' de 3 estrelas">' + "★★★".slice(0, n) + "☆☆☆".slice(0, 3 - n) + '</span>';
 }
 
-function stats(list) {
-  var ok = 0, done = 0;
-  list.forEach(function (q) { if (state.ans[q.id] !== undefined) { done++; if (state.ans[q.id] === q.a) ok++; } });
-  return { ok: ok, done: done, total: list.length };
+/* ---------- mapa de fases ---------- */
+function renderMap() {
+  var xp = totalXP(), nd = doneCount();
+  var segs = BLOCKS.map(function (b) { return '<i class="' + (P.done[b.id] ? "on" : "") + '"></i>'; }).join("");
+  var cards = BLOCKS.map(function (b, i) {
+    var d = P.done[b.id], n = b.ids.length;
+    var st = d ? starsHTML(d.score, d.total) + '<span>' + d.score + '/' + d.total + ' acertos</span><span class="pw-chip">' + esc(b.pw) + '</span>'
+               : '<span>' + n + ' questões · ainda não concluída</span>';
+    return '<button class="blk ' + (d ? "done" : "") + '" data-b="' + i + '">' +
+      '<span class="no"><span class="tag ' + b.t + '">' + esc(TOPICS[b.t]) + '</span><span>FASE ' + two(i + 1) + '</span></span>' +
+      '<h3 class="nm">' + esc(b.name) + '</h3><span class="st">' + st + '</span></button>';
+  }).join("");
+  var master = nd === BLOCKS.length
+    ? '<section class="master"><span class="h2">Missão cumprida</span><p style="margin:0">Você concluiu as 10 fases. Senha final:</p>' + pwBox(MASTER, "master") + '</section>' : "";
+  var reset = S.confirmReset
+    ? '<span class="danger">Apagar todo o progresso deste navegador?</span> <button class="btn" id="reset-yes">Sim, zerar</button> <button class="btn" id="reset-no">Cancelar</button>'
+    : (nd ? '<button class="btn" id="reset">Zerar progresso</button>' : "");
+  view.innerHTML =
+    '<section class="hud" aria-label="Seu progresso"><div class="hud-row">' +
+      '<div class="stat"><span class="k">Patente</span><span class="v">' + esc(rankOf(xp)) + '</span></div>' +
+      '<div class="stat"><span class="k">XP</span><span class="v">' + xp + ' <small>/ 700</small></span></div>' +
+      '<div class="stat"><span class="k">Fases</span><span class="v">' + nd + ' <small>/ 10</small></span></div></div>' +
+      '<div class="segs" aria-hidden="true">' + segs + '</div>' +
+      '<p class="hint" style="margin:0;font-size:13px;font-family:var(--f-body)">Responda todas as questões de uma fase para ganhar a senha dela e liberar o gabarito comentado. Cada acerto vale 10 XP e concluir a fase vale 20 XP.</p></section>' +
+    master + '<div class="map">' + cards + '</div><div class="nav" style="justify-content:flex-end">' + reset + '</div>';
 }
 
-function filtersHTML() {
-  var items = [["all", "Todas"], ["linux", "Linux"], ["memoria", "Memória"], ["virt", "Virtualização"]];
-  return '<div class="filters" role="group" aria-label="Tema">' + items.map(function (it) {
-    return '<button class="chip" data-k="' + it[0] + '" aria-pressed="' + (state.filter === it[0]) + '"><span class="dot"></span>' + it[1] + ' <span class="n">' + countFor(it[0]) + '</span></button>';
+function pwBox(pw, id) {
+  return '<div class="pwbox"><span class="pw" id="pw-' + id + '">' + esc(pw) + '</span><button class="btn" data-copy="' + esc(pw) + '" data-for="pw-' + id + '">Copiar senha</button></div>';
+}
+
+/* ---------- responder uma fase ---------- */
+function renderPlay() {
+  var b = BLOCKS[S.b], list = qs(b), q = list[S.idx];
+  var answered = list.filter(function (x) { return S.cur[x.id] !== undefined; }).length;
+  var frames = list.map(function (x, i) {
+    var cls = "fr" + (S.cur[x.id] !== undefined ? " ans" : "") + (i === S.idx ? " cur" : "");
+    return '<button class="' + cls + '" data-i="' + i + '" aria-label="Questão ' + x.id + (S.cur[x.id] !== undefined ? ", respondida" : ", sem resposta") + '">' + x.id + '</button>';
+  }).join("");
+  var opts = q.o.map(function (t, i) {
+    var sel = S.cur[q.id] === i;
+    return '<li><button class="opt' + (sel ? " sel" : "") + '" data-o="' + i + '" aria-pressed="' + sel + '"><span class="L">' + LET[i] + '</span><span class="T">' + fmt(t) + '</span></button></li>';
+  }).join("");
+  var last = S.idx === list.length - 1;
+  var missing = list.length - answered;
+  var nextBtn = last
+    ? '<button class="btn primary" id="finish"' + (missing ? " disabled" : "") + '>Finalizar fase</button>'
+    : '<button class="btn primary" id="next">Próxima</button>';
+  view.innerHTML =
+    '<div class="crumb"><span class="eyebrow" style="margin:0">Fase ' + two(S.b + 1) + ' · ' + esc(b.name) + (S.practice ? " · treino" : "") + '</span><button class="btn" id="leave">Sair da fase</button></div>' +
+    '<section class="frames-box" aria-label="Progresso da fase"><div class="frames-head"><span><b>' + answered + '</b> de ' + list.length + ' respondidas</span><span>o gabarito abre ao finalizar</span></div><div class="frames">' + frames + '</div></section>' +
+    '<article class="card"><div class="qmeta"><span>Questão ' + two(q.id) + ' / 50</span><span class="tag ' + q.t + '">' + esc(TOPICS[q.t]) + '</span></div>' +
+    '<h2 class="qtext">' + fmt(q.q) + '</h2><ul class="opts">' + opts + '</ul>' +
+    '<div class="nav"><button class="btn" id="prev"' + (S.idx === 0 ? " disabled" : "") + '>Anterior</button>' +
+    (last && missing ? '<span class="hint">faltam ' + missing + ' para finalizar</span>' : '<span class="hint">teclas A–E marcam · Enter avança</span>') +
+    nextBtn + '</div></article>';
+}
+
+function finish() {
+  var b = BLOCKS[S.b], list = qs(b), score = 0;
+  list.forEach(function (q) { if (S.cur[q.id] === q.a) score++; });
+  var official = !P.done[b.id];
+  if (official) { P.done[b.id] = { score: score, total: list.length, answers: S.cur, xp: score * 10 + 20 }; saveP(); }
+  S.last = { score: score, total: list.length, official: official, answers: S.cur };
+  S.screen = "result"; render(); window.scrollTo({ top: 0 });
+}
+
+/* ---------- gabarito de uma fase ---------- */
+function reviewHTML(b, answers) {
+  return '<div class="gl">' + qs(b).map(function (q) {
+    var a = answers ? answers[q.id] : undefined;
+    return '<article class="gq"><div class="qmeta"><span>Questão ' + two(q.id) + '</span><span class="tag ' + q.t + '">' + esc(TOPICS[q.t]) + '</span></div>' +
+      '<h3 class="qtext">' + fmt(q.q) + '</h3><ol>' + q.o.map(function (t, i) {
+        var cls = i === q.a ? "right" : (i === a ? "wrong" : "");
+        var mark = i === q.a ? '<span class="mark">' + (a === i ? "correta · sua resposta" : "correta") + '</span>' : (i === a ? '<span class="mark">sua resposta</span>' : "");
+        return '<li class="' + cls + '"><span class="l">' + LET[i] + (i === q.a ? " ✓" : (i === a ? " ✕" : "")) + '</span><span>' + fmt(t) + mark + '</span></li>';
+      }).join("") + '</ol><p class="expl">' + fmt(q.e) + '</p><span class="hint">' + esc(q.s) + '</span></article>';
   }).join("") + '</div>';
 }
 
-function framesHTML() {
-  var s = stats(state.list);
-  var cells = state.list.map(function (q, i) {
-    var a = state.ans[q.id], cls = "fr";
-    if (a !== undefined) cls += a === q.a ? " ok" : " bad";
-    if (i === state.idx && !state.result) cls += " cur";
-    var st = a === undefined ? "sem resposta" : (a === q.a ? "correta" : "errada");
-    return '<button class="' + cls + '" data-i="' + i + '" aria-label="Questão ' + q.id + ', ' + st + '">' + q.id + '</button>';
-  }).join("");
-  return '<section class="frames-box" aria-label="Progresso">' +
-    '<div class="frames-head"><span><b>' + s.done + '</b> de ' + s.total + ' respondidas</span><span><b>' + s.ok + '</b> corretas</span></div>' +
-    '<div class="frames">' + cells + '</div></section>';
-}
-
-function renderQuiz() {
-  if (state.result) return renderResult();
-  var q = state.list[state.idx];
-  var a = state.ans[q.id], answered = a !== undefined;
-  var opts = q.o.map(function (t, i) {
-    var cls = "opt", flag = "";
-    if (answered) {
-      if (i === q.a) { cls += " right"; flag = '<span class="flag">Resposta correta</span>'; }
-      else if (i === a) { cls += " wrong"; flag = '<span class="flag">Sua resposta</span>'; }
-      else cls += " dim";
-    }
-    return '<li><button class="' + cls + '" data-o="' + i + '"' + (answered ? " disabled" : "") + '><span class="L">' + LET[i] + '</span><span class="T">' + fmt(t) + flag + '</span></button></li>';
-  }).join("");
-  var why = answered ? '<div class="why" role="status"><span class="h">' + (a === q.a ? "Correto" : "Revisão") + '</span><p>' + fmt(q.e) + '</p><span class="src">' + esc(q.s) + '</span></div>' : "";
-  var last = state.idx === state.list.length - 1;
-  var allDone = stats(state.list).done === state.list.length;
-  var nextLabel = last ? (allDone ? "Ver resultado" : "Ver resultado parcial") : "Próxima";
-  view.innerHTML = filtersHTML() +
-    '<article class="card" aria-live="polite">' +
-      '<div class="qmeta"><span>Questão ' + two(q.id) + ' / ' + DATA.length + '</span><span class="tag ' + q.t + '">' + esc(TOPICS[q.t].name) + '</span></div>' +
-      '<h2 class="qtext">' + fmt(q.q) + '</h2>' +
-      '<ul class="opts">' + opts + '</ul>' + why +
-      '<div class="nav"><button class="btn" id="prev"' + (state.idx === 0 ? " disabled" : "") + '>Anterior</button>' +
-      '<span class="hint">teclas A–E respondem · Enter avança</span>' +
-      '<button class="btn primary" id="next"' + (answered || last ? "" : "") + '>' + nextLabel + '</button></div>' +
-    '</article>' + framesHTML();
-}
-
 function renderResult() {
-  var s = stats(state.list);
-  var pct = s.total ? Math.round(100 * s.ok / s.total) : 0;
-  var byT = {};
-  state.list.forEach(function (q) {
-    var b = byT[q.t] || (byT[q.t] = { ok: 0, tot: 0 });
-    if (state.ans[q.id] !== undefined) { b.tot++; if (state.ans[q.id] === q.a) b.ok++; }
-  });
-  var bars = Object.keys(byT).map(function (k) {
-    var b = byT[k], p = b.tot ? Math.round(100 * b.ok / b.tot) : 0;
-    return '<div class="bar-row"><span>' + esc(TOPICS[k].name) + '</span><div class="bar" role="img" aria-label="' + p + '%"><i style="width:' + p + '%"></i></div><span class="v">' + b.ok + '/' + b.tot + '</span></div>';
-  }).join("");
-  var miss = state.list.filter(function (q) { return state.ans[q.id] !== undefined && state.ans[q.id] !== q.a; });
-  var skipped = state.list.length - s.done;
-  var missHTML = miss.length ? '<h3 class="h2">Para revisar (' + miss.length + ')</h3><ul class="miss">' + miss.map(function (q) {
-    return '<li><span class="n">Questão ' + two(q.id) + ' · ' + esc(q.s) + '</span><span>' + fmt(q.q) + '</span>' +
-      '<span class="a">Correta: <b>' + LET[q.a] + '</b> · ' + fmt(q.o[q.a]) + '</span></li>';
-  }).join("") + '</ul>' : '<p>Nenhum erro nesta rodada.</p>';
-  view.innerHTML = filtersHTML() + framesHTML() +
-    '<section class="card"><div class="score"><span class="big">' + s.ok + '</span><span class="of">de ' + s.total + ' questões · ' + pct + '%</span></div>' +
-    (skipped ? '<p class="hint">' + skipped + ' sem resposta (não contam como acerto).</p>' : '') +
-    '<div class="bars">' + bars + '</div>' + missHTML +
-    '<div class="nav"><button class="btn" id="back">Voltar às questões</button>' +
-    (miss.length ? '<button class="btn" id="redo-miss">Refazer só os erros</button>' : '') +
-    '<button class="btn primary" id="redo">Refazer tudo</button></div></section>';
+  var b = BLOCKS[S.b], L = S.last, d = P.done[b.id];
+  var isPractice = !L.official;
+  var nextI = S.b + 1 < BLOCKS.length ? S.b + 1 : -1;
+  view.innerHTML =
+    '<section class="card"><span class="eyebrow" style="margin:0">Fase ' + two(S.b + 1) + ' concluída · ' + esc(b.name) + '</span>' +
+    '<div class="score"><span class="big">' + L.score + '</span><span class="of">de ' + L.total + ' questões</span>' + starsHTML(L.score, L.total) + '</div>' +
+    (isPractice ? '<p class="hint">Treino: o placar oficial desta fase continua ' + d.score + '/' + d.total + ' e o XP não muda.</p>'
+                : '<p class="hint">+' + d.xp + ' XP (' + L.score + ' × 10 + 20 de bônus por concluir)</p>') +
+    '<div class="master"><span class="h2">Senha da fase ' + two(S.b + 1) + '</span>' + pwBox(b.pw, "blk") + '</div>' +
+    '<div class="nav"><button class="btn" id="to-map">Voltar ao mapa</button><button class="btn" id="redo">Refazer em modo treino</button>' +
+    (nextI >= 0 ? '<button class="btn primary" data-b="' + nextI + '">Próxima fase</button>' : '') + '</div></section>' +
+    '<h2 class="h2">Gabarito comentado da fase</h2>' + reviewHTML(b, L.answers);
 }
 
+/* ---------- aba Gabarito ---------- */
 function renderKey() {
-  var keyCells = DATA.map(function (q) { return '<div><span>' + two(q.id) + '</span><b>' + LET[q.a] + '</b></div>'; }).join("");
-  var items = DATA.map(function (q) {
-    return '<article class="gq"><div class="qmeta"><span>Questão ' + two(q.id) + '</span><span class="tag ' + q.t + '">' + esc(TOPICS[q.t].name) + '</span></div>' +
-      '<h3 class="qtext">' + fmt(q.q) + '</h3><ol>' + q.o.map(function (t, i) {
-        return '<li class="' + (i === q.a ? "right" : "") + '"><span class="l">' + LET[i] + (i === q.a ? " ✓" : "") + '</span><span>' + fmt(t) + '</span></li>';
-      }).join("") + '</ol><p class="expl">' + fmt(q.e) + '</p><span class="hint">' + esc(q.s) + '</span></article>';
+  var strip = BLOCKS.map(function (b) {
+    var d = P.done[b.id];
+    return b.ids.map(function (id) { return '<div><span>' + two(id) + '</span><b>' + (d ? LET[byId[id].a] : "·") + '</b></div>'; }).join("");
   }).join("");
-  view.innerHTML = '<section class="card"><h2 class="h2">Gabarito resumido</h2><div class="key">' + keyCells + '</div></section><div class="gl" style="margin-top:18px">' + items + '</div>';
+  var sections = BLOCKS.map(function (b, i) {
+    var d = P.done[b.id];
+    if (!d) return '<div class="lock"><b>Fase ' + two(i + 1) + ' · ' + esc(b.name) + '</b><span>Bloqueado. Responda as ' + b.ids.length + ' questões da fase para abrir o gabarito.</span></div>';
+    return '<details class="dt"><summary><span>Fase ' + two(i + 1) + ' · ' + esc(b.name) + '</span><span class="st">' + starsHTML(d.score, d.total) + ' <span class="pw-chip">' + esc(b.pw) + '</span></span></summary>' + reviewHTML(b, d.answers) + '</details>';
+  }).join("");
+  view.innerHTML = '<section class="card"><h2 class="h2">Gabarito resumido</h2><p class="hint" style="margin:0;font-size:13px;font-family:var(--f-body)">Cada fase só revela suas respostas depois de concluída.</p><div class="key">' + strip + '</div></section>' +
+    '<div class="gl" style="margin-top:18px">' + sections + '</div>';
 }
 
 function render() {
-  document.getElementById("tab-quiz").setAttribute("aria-selected", state.tab === "quiz");
-  document.getElementById("tab-key").setAttribute("aria-selected", state.tab === "key");
-  if (state.tab === "key") renderKey(); else renderQuiz();
+  document.getElementById("tab-map").setAttribute("aria-selected", S.tab === "map");
+  document.getElementById("tab-key").setAttribute("aria-selected", S.tab === "key");
+  if (S.tab === "key") return renderKey();
+  if (S.screen === "play") return renderPlay();
+  if (S.screen === "result") return renderResult();
+  renderMap();
 }
 
-function answer(i) {
-  var q = state.list[state.idx];
-  if (state.ans[q.id] !== undefined) return;
-  state.ans[q.id] = i; render();
+function start(i, keepPractice) {
+  S.b = i; S.idx = 0; S.cur = {}; S.practice = !!P.done[BLOCKS[i].id]; S.screen = "play"; S.tab = "map"; render(); window.scrollTo({ top: 0 });
 }
-function next() {
-  if (state.idx < state.list.length - 1) { state.idx++; render(); window.scrollTo({ top: 0 }); }
-  else { state.result = true; render(); window.scrollTo({ top: 0 }); }
-}
-function prev() { if (state.idx > 0) { state.idx--; render(); } }
+function pick(i) { var q = qs(BLOCKS[S.b])[S.idx]; S.cur[q.id] = i; render(); }
+function next() { if (S.idx < BLOCKS[S.b].ids.length - 1) { S.idx++; render(); } }
+function prev() { if (S.idx > 0) { S.idx--; render(); } }
 
-document.getElementById("tab-quiz").onclick = function () { state.tab = "quiz"; render(); };
-document.getElementById("tab-key").onclick = function () { state.tab = "key"; render(); window.scrollTo({ top: 0 }); };
+function copyPw(btn) {
+  var pw = btn.getAttribute("data-copy"), el = document.getElementById(btn.getAttribute("data-for"));
+  function fallback() { try { var r = document.createRange(); r.selectNodeContents(el); var s = window.getSelection(); s.removeAllRanges(); s.addRange(r); btn.textContent = "Selecionada: use Ctrl+C"; } catch (e) {} }
+  try { navigator.clipboard.writeText(pw).then(function () { btn.textContent = "Copiada"; }, fallback); } catch (e) { fallback(); }
+}
+
+document.getElementById("tab-map").onclick = function () { S.tab = "map"; render(); };
+document.getElementById("tab-key").onclick = function () { S.tab = "key"; render(); window.scrollTo({ top: 0 }); };
 
 view.addEventListener("click", function (e) {
   var t = e.target.closest("button"); if (!t) return;
-  if (t.classList.contains("chip")) return setFilter(t.dataset.k);
-  if (t.classList.contains("fr")) { state.idx = +t.dataset.i; state.result = false; return render(); }
-  if (t.dataset.o !== undefined) return answer(+t.dataset.o);
-  if (t.id === "next") return next();
-  if (t.id === "prev") return prev();
-  if (t.id === "back") { state.result = false; state.idx = 0; return render(); }
-  if (t.id === "redo") { state.list.forEach(function (q) { delete state.ans[q.id]; }); state.idx = 0; state.result = false; return render(); }
-  if (t.id === "redo-miss") {
-    var miss = state.list.filter(function (q) { return state.ans[q.id] !== undefined && state.ans[q.id] !== q.a; });
-    miss.forEach(function (q) { delete state.ans[q.id]; });
-    state.list = miss; state.filter = "custom"; state.idx = 0; state.result = false; return render();
+  if (t.hasAttribute("data-copy")) return copyPw(t);
+  if (t.classList.contains("blk") || (t.dataset.b !== undefined && !t.classList.contains("fr"))) return start(+t.dataset.b);
+  if (t.classList.contains("fr")) { S.idx = +t.dataset.i; return render(); }
+  if (t.dataset.o !== undefined) return pick(+t.dataset.o);
+  switch (t.id) {
+    case "next": return next();
+    case "prev": return prev();
+    case "finish": return finish();
+    case "leave": case "to-map": S.screen = "map"; render(); window.scrollTo({ top: 0 }); return;
+    case "redo": return start(S.b);
+    case "reset": S.confirmReset = true; return render();
+    case "reset-no": S.confirmReset = false; return render();
+    case "reset-yes": P = { done: {} }; saveP(); S.confirmReset = false; return render();
   }
 });
 
 document.addEventListener("keydown", function (e) {
-  if (state.tab !== "quiz" || state.result || e.ctrlKey || e.metaKey || e.altKey) return;
-  var k = e.key.toLowerCase(), i = "abcde".indexOf(k);
-  if (k.length === 1 && i >= 0) { answer(i); }
-  else if (e.key === "ArrowRight" || (e.key === "Enter" && document.activeElement.tagName !== "BUTTON")) next();
-  else if (e.key === "ArrowLeft") prev();
+  if (S.tab !== "map" || S.screen !== "play" || e.ctrlKey || e.metaKey || e.altKey) return;
+  var i = "abcde".indexOf(e.key.toLowerCase());
+  if (e.key.length === 1 && i >= 0) return pick(i);
+  var onBtn = document.activeElement && document.activeElement.tagName === "BUTTON";
+  if (e.key === "ArrowRight" || (e.key === "Enter" && !onBtn)) {
+    var list = qs(BLOCKS[S.b]);
+    if (S.idx < list.length - 1) next();
+    else if (list.every(function (x) { return S.cur[x.id] !== undefined; })) finish();
+  } else if (e.key === "ArrowLeft") prev();
 });
 
-setFilter("all");
+render();
 </script>
 
 </body></html>
